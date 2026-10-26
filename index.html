@@ -117,7 +117,8 @@ button:disabled{opacity:.5;cursor:default}
 const $=id=>document.getElementById(id);
 const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
 let state=null,sample=null;
-claude.use("sample").then(s=>{sample=s;if(!s){$("rep").disabled=true;$("send").disabled=true;}}).catch(()=>{});
+function noAI(){$("rep").disabled=true;$("send").disabled=true;$("rep").title="KI nicht verfügbar";const n=document.createElement("p");n.className="note";n.textContent="Hinweis: Die KI-Funktionen (Bericht und Chat) sind hier nicht verfügbar. Öffne die Seite direkt in claude.ai und erlaube den Zugriff. Die Link-Prüfung funktioniert trotzdem.";$("res").before(n);}
+try{if(typeof claude!=="undefined"&&claude&&claude.use){claude.use("sample").then(s=>{sample=s;if(!s)noAI();}).catch(noAI);}else noAI();}catch(e){noAI();}
 
 /* Tabs */
 function tab(n){$("p1").classList.toggle("hide",n!==1);$("p2").classList.toggle("hide",n!==2);$("t1").setAttribute("aria-selected",n===1);$("t2").setAttribute("aria-selected",n===2);}
@@ -141,7 +142,7 @@ function analyze(raw){
  const host=u.hostname.toLowerCase();
  const parts=host.split(".");const tld=parts[parts.length-1];
  const base=parts.slice(-2).join(".");
- const path=decodeURIComponent(u.pathname.replace(/%(?![0-9a-f]{2})/gi,"%25"));
+ let path=u.pathname;try{path=decodeURIComponent(path);}catch(e){}
  const file=path.split("/").filter(Boolean).pop()||"";
  const ext=file.includes(".")?file.split(".").pop().toLowerCase():"";
 
@@ -204,7 +205,15 @@ function show(a){
  $("repout").innerHTML="";
  resetChat();
 }
-$("go").onclick=()=>{const a=analyze($("url").value);if(!a){alert("Das ist kein gültiger Link.");return;}show(a);};
+$("go").onclick=()=>{
+ try{
+  const v=$("url").value.trim();
+  if(!v){$("url").focus();return;}
+  const a=analyze(v);
+  if(!a){$("res").classList.add("hide");alert("Das ist kein gültiger Link.");return;}
+  show(a);
+ }catch(e){alert("Fehler bei der Prüfung: "+(e&&e.message||e));}
+};
 $("url").addEventListener("keydown",e=>{if(e.key==="Enter")$("go").click();});
 
 function ctx(){
