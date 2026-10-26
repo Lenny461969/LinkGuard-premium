@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Download-Link-Prüfer</title>
+<style>
+:root{--bg:#f6f7f9;--card:#fff;--tx:#1b1f24;--mut:#5d6672;--bd:#dfe3e8;--ac:#2457d6;--acx:#fff;--ok:#1a7f45;--wa:#b36b00;--bad:#c62828;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#14171b;--card:#1d2127;--tx:#e8ebef;--mut:#9aa4b0;--bd:#31373f;--ac:#6b93ff;--acx:#0d1320;--ok:#4cc77f;--wa:#f0a63a;--bad:#ff6b6b;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#14171b;--card:#1d2127;--tx:#e8ebef;--mut:#9aa4b0;--bd:#31373f;--ac:#6b93ff;--acx:#0d1320;--ok:#4cc77f;--wa:#f0a63a;--bad:#ff6b6b;color-scheme:dark}
+*{box-sizing:border-box}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+.wrap{max-width:820px;margin:0 auto;padding:16px}
+h1{font-size:1.4rem;margin:.2rem 0 .1rem}
+.sub{color:var(--mut);margin:0 0 14px;font-size:.92rem}
+.tabs{display:flex;gap:6px;margin-bottom:12px}
+.tab{flex:1;padding:10px;border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:10px;font:inherit;font-weight:600;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ac);color:var(--acx);border-color:var(--ac)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:12px;padding:14px;margin-bottom:12px}
+label{display:block;font-weight:600;font-size:.9rem;margin-bottom:4px}
+input[type=text],input[type=url],textarea{width:100%;padding:10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);font:inherit}
+.row{display:flex;gap:8px;flex-wrap:wrap}
+.row>input{flex:1;min-width:200px}
+button.pri{padding:10px 16px;border:0;border-radius:8px;background:var(--ac);color:var(--acx);font:inherit;font-weight:600;cursor:pointer}
+button.sec{padding:8px 12px;border:1px solid var(--bd);border-radius:8px;background:var(--card);color:var(--tx);font:inherit;cursor:pointer}
+button:disabled{opacity:.5;cursor:default}
+.score{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.badge{padding:6px 12px;border-radius:99px;font-weight:700;color:#fff}
+.b-ok{background:var(--ok)}.b-wa{background:var(--wa)}.b-bad{background:var(--bad)}
+.f{display:flex;gap:10px;padding:8px 0;border-top:1px solid var(--bd)}
+.f:first-child{border-top:0}
+.dot{flex:none;width:10px;height:10px;border-radius:50%;margin-top:7px}
+.d-ok{background:var(--ok)}.d-wa{background:var(--wa)}.d-bad{background:var(--bad)}
+.f small{display:block;color:var(--mut)}
+.links{display:flex;gap:8px;flex-wrap:wrap}
+.links a{padding:8px 12px;border:1px solid var(--bd);border-radius:8px;color:var(--ac);text-decoration:none;font-size:.9rem}
+.rep h2,.rep h3{font-size:1.05rem;margin:14px 0 4px}
+.rep ul{padding-left:20px;margin:4px 0}
+.rep p{margin:6px 0}
+.mono{font-family:ui-monospace,Menlo,Consolas,monospace;font-size:.8rem;word-break:break-all}
+.chat{min-height:240px;max-height:55vh;overflow-y:auto;display:flex;flex-direction:column;gap:8px}
+.m{padding:9px 12px;border-radius:12px;max-width:92%;white-space:pre-wrap;word-wrap:break-word}
+.me{align-self:flex-end;background:var(--ac);color:var(--acx)}
+.ai{align-self:flex-start;background:var(--bg);border:1px solid var(--bd)}
+.note{color:var(--mut);font-size:.85rem}
+.hide{display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>🔍 Download-Link-Prüfer</h1>
+<p class="sub">Prüft Links auf typische Manipulationsmerkmale, erstellt einen Bericht und beantwortet Fragen im Chat.</p>
+
+<div class="tabs" role="tablist">
+<button class="tab" role="tab" id="t1" aria-selected="true">Prüfen &amp; Bericht</button>
+<button class="tab" role="tab" id="t2" aria-selected="false">Chat</button>
+</div>
+
+<section id="p1">
+<div class="card">
+<label for="url">Download-Link</label>
+<div class="row">
+<input type="url" id="url" placeholder="https://beispiel.de/setup.exe" autocomplete="off">
+<button class="pri" id="go">Prüfen</button>
+</div>
+<p class="note">Der Link wird lokal analysiert (Aufbau, Domain, Dateityp). Die Seite selbst wird nicht aufgerufen.</p>
+</div>
+
+<div id="res" class="hide">
+<div class="card">
+<div class="score"><span class="badge" id="badge"></span><span id="scoretx"></span></div>
+<div id="finds"></div>
+</div>
+
+<div class="card">
+<label>Reputation online nachschlagen</label>
+<div class="links" id="links"></div>
+<p class="note">Live-Googeln ist aus dieser Seite nicht möglich. Die Buttons öffnen die Suche in einem neuen Tab.</p>
+</div>
+
+<div class="card">
+<div class="row" style="justify-content:space-between;align-items:center">
+<strong>Detaillierter Bericht</strong>
+<span class="row"><button class="pri" id="rep">Bericht erstellen</button><button class="sec hide" id="stop">Stopp</button></span>
+</div>
+<div id="repout" class="rep"></div>
+</div>
+
+<div class="card">
+<strong>Datei-Integrität prüfen (optional)</strong>
+<p class="note">Datei auswählen und den offiziellen SHA-256-Wert vom Anbieter einfügen. Die Datei bleibt auf deinem Gerät.</p>
+<input type="file" id="file" style="margin-bottom:8px;width:100%">
+<input type="text" id="exp" placeholder="Offizieller SHA-256-Hash vom Anbieter" autocomplete="off">
+<div style="margin-top:8px"><button class="sec" id="hash">Hash berechnen &amp; vergleichen</button></div>
+<p id="hout" class="mono"></p>
+</div>
+</div>
+</section>
+
+<section id="p2" class="hide">
+<div class="card">
+<div class="chat" id="chat" aria-live="polite"></div>
+</div>
+<div class="card">
+<div class="row">
+<input type="text" id="q" placeholder="Frage zum Link, Bericht oder zu Downloads allgemein…" autocomplete="off">
+<button class="pri" id="send">Senden</button>
+<button class="sec hide" id="cstop">Stopp</button>
+</div>
+<p class="note">Der Chat kennt den zuletzt geprüften Link samt Ergebnissen. Er kann nicht live im Web suchen, nutze dafür die Such-Buttons im ersten Tab.</p>
+</div>
+</section>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+let state=null,sample=null;
+claude.use("sample").then(s=>{sample=s;if(!s){$("rep").disabled=true;$("send").disabled=true;}}).catch(()=>{});
+
+/* Tabs */
+function tab(n){$("p1").classList.toggle("hide",n!==1);$("p2").classList.toggle("hide",n!==2);$("t1").setAttribute("aria-selected",n===1);$("t2").setAttribute("aria-selected",n===2);}
+$("t1").onclick=()=>tab(1);$("t2").onclick=()=>tab(2);
+
+/* Analyse */
+const SHORT=["bit.ly","tinyurl.com","t.co","goo.gl","ow.ly","is.gd","cutt.ly","rebrand.ly","shorturl.at","tiny.cc","buff.ly","rb.gy"];
+const BADTLD=["zip","mov","xyz","top","click","gq","tk","ml","cf","ga","work","loan","country","stream","download","icu","cyou","monster","rest"];
+const EXE=["exe","msi","bat","cmd","scr","com","pif","vbs","vbe","js","jse","wsf","ps1","jar","apk","dmg","pkg","iso","img","lnk","hta","reg","dll","sh","run","appimage"];
+const ARCH=["zip","rar","7z","tar","gz","cab"];
+const DOC=["pdf","doc","docx","xls","xlsx","ppt","pptx","txt","jpg","jpeg","png","mp3","mp4"];
+const BRANDS=["microsoft","google","apple","adobe","paypal","amazon","dropbox","github","nvidia","mozilla","firefox","chrome","steam","discord","zoom","telegram","whatsapp","vlc","winrar","7-zip","notepad","python","nodejs","docker","ubuntu","windows","office","telegram","spotify","netflix"];
+const FILEHOST=["mega.nz","mediafire.com","anonfiles.com","gofile.io","transfer.sh","pastebin.com","cdn.discordapp.com","dropbox.com","drive.google.com","wetransfer.com","sendspace.com","filebin.net","bayfiles.com"];
+function lev(a,b){const m=[];for(let i=0;i<=a.length;i++){m[i]=[i];}for(let j=1;j<=b.length;j++)m[0][j]=j;for(let i=1;i<=a.length;i++)for(let j=1;j<=b.length;j++)m[i][j]=Math.min(m[i-1][j]+1,m[i][j-1]+1,m[i-1][j-1]+(a[i-1]===b[j-1]?0:1));return m[a.length][b.length];}
+
+function analyze(raw){
+ const F=[];let sc=0;
+ const add=(sev,t,d,p)=>{F.push({sev,t,d});sc+=p;};
+ let u;raw=raw.trim();
+ try{u=new URL(/^[a-z][a-z0-9+.-]*:/i.test(raw)?raw:"https://"+raw);}catch(e){return null;}
+ const host=u.hostname.toLowerCase();
+ const parts=host.split(".");const tld=parts[parts.length-1];
+ const base=parts.slice(-2).join(".");
+ const path=decodeURIComponent(u.pathname.replace(/%(?![0-9a-f]{2})/gi,"%25"));
+ const file=path.split("/").filter(Boolean).pop()||"";
+ const ext=file.includes(".")?file.split(".").pop().toLowerCase():"";
+
+ if(u.protocol==="https:")add("ok","Verschlüsselte Verbindung (HTTPS)","Die Übertragung ist verschlüsselt. Das sagt aber nichts über die Vertrauenswürdigkeit des Betreibers.",0);
+ else if(u.protocol==="http:")add("bad","Unverschlüsseltes HTTP","Die Datei kann auf dem Weg abgefangen und verändert werden. Das ist die klassische Manipulationsmöglichkeit.",30);
+ else add("bad","Ungewöhnliches Protokoll: "+u.protocol,"Für normale Downloads sind nur http und https üblich.",35);
+
+ if(u.username||u.password)add("bad","Zugangsdaten-Trick im Link (@)","Alles vor dem @ ist nur Benutzername, der echte Zielserver ist „"+host+"“. Beliebte Tarnmethode.",35);
+ if(/^\d{1,3}(\.\d{1,3}){3}$/.test(host)||/^\[.*\]$/.test(host)||/^\d+$/.test(host)||/^0x/i.test(host))add("bad","Server ist nur eine IP-Adresse","Seriöse Anbieter nutzen fast immer einen Domainnamen.",25);
+ if(host.includes("xn--"))add("bad","Punycode-Domain (xn--)","Kann Zeichen enthalten, die lateinischen Buchstaben täuschend ähnlich sehen (Homograph-Angriff).",30);
+ else if(/[^\x00-\x7f]/.test(u.hostname))add("wa","Sonderzeichen in der Domain","Nicht-ASCII-Zeichen können Verwechslungen auslösen.",15);
+ if(SHORT.includes(host))add("wa","Link-Verkürzer","Das echte Ziel ist verborgen. Erst auflösen lassen, z. B. über urlscan.io.",20);
+ if(BADTLD.includes(tld))add("wa","Auffällige Domain-Endung ."+tld,"Diese Endung wird überdurchschnittlich oft für Missbrauch genutzt.",15);
+ if(u.port&&!["80","443"].includes(u.port))add("wa","Ungewöhnlicher Port "+u.port,"Normale Download-Seiten laufen auf Standardports.",12);
+ if(parts.length>4)add("wa","Sehr viele Subdomains ("+parts.length+" Ebenen)","Oft genutzt, um bekannte Namen vorzutäuschen, z. B. paypal.login.evil.com.",12);
+ if((host.match(/-/g)||[]).length>=3)add("wa","Viele Bindestriche in der Domain","Typisch für Wegwerf- und Fake-Domains.",10);
+ if(host.length>40)add("wa","Sehr lange Domain","Auffällig lang.",8);
+
+ const lab=parts.slice(0,-1);const reg=(parts[parts.length-2]||"");
+ let hit=null;
+ for(const b of BRANDS){
+  const official=reg===b||base===b+".com";
+  if(!official&&reg.length>3&&lev(reg.replace(/-/g,""),b)<=2&&reg!==b){hit=[b,"ähnelt stark dem Namen „"+b+"“ (Tippfehler-Domain)"];break;}
+  if(!official&&host.includes(b)&&reg!==b){hit=[b,"enthält den Markennamen „"+b+"“, gehört aber nicht dem Hersteller"];break;}
+ }
+ if(hit)add("bad","Mögliche Markenvortäuschung","Die Domain "+hit[1]+". Offizielle Downloads nur von der echten Herstellerseite holen.",30);
+ if(FILEHOST.some(h=>host===h||host.endsWith("."+h)))add("wa","Allgemeiner Datei-Hoster","Jeder kann dort Dateien hochladen. Das sagt nichts über den Ursprung der Datei.",12);
+
+ if(!ext)add("wa","Keine erkennbare Dateiendung","Der Dateityp ist aus dem Link nicht ersichtlich.",5);
+ else if(EXE.includes(ext))add("wa","Ausführbare Datei (."+ext+")","Dieser Typ kann direkt Schadcode starten. Nur ausführen, wenn Quelle und Prüfsumme stimmen.",15);
+ else if(ARCH.includes(ext))add("wa","Archiv (."+ext+")","Archive können ausführbare Dateien verstecken.",6);
+ else if(DOC.includes(ext))add("ok","Dokument-/Medientyp (."+ext+")","Geringeres Grundrisiko, aber Office-Dateien können Makros enthalten.",0);
+ const dbl=file.toLowerCase().match(/\.(pdf|docx?|xlsx?|jpe?g|png|txt|mp3|mp4)\.(exe|scr|bat|cmd|js|vbs|com|jar|msi|lnk)$/);
+ if(dbl)add("bad","Doppelte Dateiendung (."+dbl[1]+"."+dbl[2]+")","Tarnt ein Programm als harmloses Dokument. Sehr starkes Warnsignal.",40);
+ if(/[\u202e\u200b]/.test(raw)||/%e2%80%ae/i.test(raw))add("bad","Versteckte Steuerzeichen im Link","Unsichtbare Zeichen können die Endung optisch verdrehen.",35);
+ if(/(url|redirect|redir|next|target|dest|goto|link)=https?/i.test(u.search))add("wa","Weiterleitung im Link","Ein Parameter enthält eine weitere URL, möglicher Umleitungs-Missbrauch.",15);
+ if((raw.match(/%[0-9a-f]{2}/gi)||[]).length>8)add("wa","Viele kodierte Zeichen","Starke Kodierung kann Inhalte verschleiern.",8);
+ if(/(crack|keygen|patch|serial|warez|nulled|free-?download|torrent|hack)/i.test(raw))add("bad","Schlagwörter für Raubkopien/Cracks","Solche Downloads sind sehr häufig mit Malware gebündelt.",25);
+
+ sc=Math.min(100,sc);
+ const lvl=sc>=45?["bad","Hohes Risiko"]:sc>=20?["wa","Erhöhte Vorsicht"]:["ok","Keine groben Auffälligkeiten"];
+ return{raw,u,host,file,ext,F,sc,lvl,base};
+}
+
+function show(a){
+ state=a;
+ $("res").classList.remove("hide");
+ $("badge").className="badge b-"+a.lvl[0];$("badge").textContent=a.lvl[1];
+ $("scoretx").textContent="Risiko-Punktzahl "+a.sc+" / 100 (Heuristik, keine Garantie)";
+ $("finds").innerHTML=a.F.map(f=>`<div class="f"><span class="dot d-${f.sev}"></span><div><strong>${esc(f.t)}</strong><small>${esc(f.d)}</small></div></div>`).join("");
+ const q=encodeURIComponent,h=a.host,full=a.u.href;
+ $("links").innerHTML=[
+  ["Google: Domain + Betrug","https://www.google.com/search?q="+q(h+" scam OR malware OR Erfahrungen")],
+  ["Google: Dateiname","https://www.google.com/search?q="+q('"'+(a.file||h)+'" malware OR sicher')],
+  ["VirusTotal","https://www.virustotal.com/gui/search/"+q(full)],
+  ["urlscan.io","https://urlscan.io/search/#"+q('domain:'+h)],
+  ["Google Safe Browsing","https://transparencyreport.google.com/safe-browsing/search?url="+q(full)],
+  ["Whois","https://who.is/whois/"+q(h)]
+ ].map(([t,l])=>`<a href="${esc(l)}" target="_blank" rel="noopener noreferrer">${esc(t)} ↗</a>`).join("");
+ $("repout").innerHTML="";
+ resetChat();
+}
+$("go").onclick=()=>{const a=analyze($("url").value);if(!a){alert("Das ist kein gültiger Link.");return;}show(a);};
+$("url").addEventListener("keydown",e=>{if(e.key==="Enter")$("go").click();});
+
+function ctx(){
+ if(!state)return"Es wurde noch kein Link geprüft.";
+ return"Geprüfter Link: "+state.u.href+"\nHost: "+state.host+"\nDateiname: "+(state.file||"-")+"\nHeuristik-Risiko: "+state.sc+"/100 ("+state.lvl[1]+")\nBefunde:\n"+state.F.map(f=>"- ["+f.sev+"] "+f.t+": "+f.d).join("\n");
+}
+
+/* Mini-Markdown */
+function md(t){
+ const lines=esc(t).split("\n");let out="",ul=false;
+ const inl=s=>s.replace(/\*\*(.+?)\*\*/g,"<strong>$1</strong>").replace(/`(.+?)`/g,"<code>$1</code>");
+ for(const l of lines){
+  const li=l.match(/^\s*[-*]\s+(.*)/);
+  if(li){if(!ul){out+="<ul>";ul=true;}out+="<li>"+inl(li[1])+"</li>";continue;}
+  if(ul){out+="</ul>";ul=false;}
+  const h=l.match(/^#{1,4}\s+(.*)/);
+  if(h)out+="<h3>"+inl(h[1])+"</h3>";else if(l.trim())out+="<p>"+inl(l)+"</p>";
+ }
+ return out+(ul?"</ul>":"");
+}
+const ERR={not_granted:"Du hast Claude für diese Seite nicht freigegeben.",rate_limited:"Zu viele Anfragen oder Nutzungslimit erreicht. Bitte später erneut versuchen.",upstream_error:"Verbindungsproblem. Bitte erneut versuchen.",session_expired:"Bitte neu anmelden."};
+const errTx=e=>ERR[e&&e.code]||"Das hat nicht geklappt ("+(e&&e.code||"Fehler")+").";
+
+/* Bericht */
+let ctl=null;
+$("rep").onclick=async()=>{
+ if(!state||!sample)return;
+ ctl=new AbortController();$("rep").disabled=true;$("stop").classList.remove("hide");
+ $("repout").innerHTML="<p class=note>Bericht wird erstellt…</p>";
+ const prompt="Du bist ein Sicherheitsanalyst. Schreibe auf Deutsch einen detaillierten, gut lesbaren Bericht zur Manipulations- und Malware-Gefahr dieses Download-Links. Du kannst NICHT im Web suchen und die Seite nicht aufrufen. Stütze dich nur auf die Linkdaten und die automatische Vorprüfung, und kennzeichne Vermutungen klar als solche. Erfinde keine Reputationsdaten.\n\nGliederung mit ## Überschriften: Zusammenfassung und Gesamteinschätzung (inkl. Ampel), Analyse des Links im Detail (Domain, Pfad, Dateityp), Mögliche Angriffsszenarien, Was die Vorprüfung nicht erkennen kann, Konkrete nächste Schritte (Prüfsumme vergleichen, Offizielle Quelle, VirusTotal, Sandbox), Fazit. Verwende Aufzählungen mit - und **fett** für Wichtiges.\n\n"+ctx();
+ try{
+  await sample(prompt,{signal:ctl.signal,onText:({text})=>{$("repout").innerHTML=md(text);}});
+ }catch(e){
+  if(e.code!=="cancelled")$("repout").innerHTML=(e.text?md(e.text):"")+"<p class=note>"+esc(errTx(e))+"</p>";
+ }
+ $("rep").disabled=false;$("rep").textContent="Neu erstellen";$("stop").classList.add("hide");
+};
+$("stop").onclick=()=>ctl&&ctl.abort();
+
+/* Datei-Hash */
+$("hash").onclick=async()=>{
+ const f=$("file").files[0];if(!f){$("hout").textContent="Bitte zuerst eine Datei auswählen.";return;}
+ if(f.size>1.5e9){$("hout").textContent="Datei zu groß für die Prüfung im Browser.";return;}
+ $("hout").textContent="Berechne…";
+ try{
+  const buf=await f.arrayBuffer();
+  const d=await crypto.subtle.digest("SHA-256",buf);
+  const hex=[...new Uint8Array(d)].map(b=>b.toString(16).padStart(2,"0")).join("");
+  const ex=$("exp").value.trim().toLowerCase().replace(/\s+/g,"");
+  let v="SHA-256: "+hex;
+  if(ex)v+=ex===hex?"\n✅ Stimmt mit dem Hash des Anbieters überein.":"\n❌ ACHTUNG: Hash weicht ab. Datei nicht ausführen!";
+  $("hout").style.whiteSpace="pre-wrap";$("hout").textContent=v;
+ }catch(e){$("hout").textContent="Berechnung nicht möglich (zu wenig Speicher?).";}
+};
+
+/* Chat */
+const RULES="Du bist der Assistent eines Tools, das Download-Links auf Manipulation und Malware-Risiken prüft. Antworte auf Deutsch, klar und knapp. Du kannst nicht im Web suchen und keine Links aufrufen. Sage das ehrlich, wenn eine Frage Live-Daten braucht, und verweise dann auf die Such-Buttons im Prüfen-Tab (Google, VirusTotal, urlscan). Erfinde keine Fakten zu bestimmten Seiten. Gib keine Garantien für Sicherheit.";
+let turns=[],busy=false;
+function bubble(cls,t){const d=document.createElement("div");d.className="m "+cls;d.textContent=t;$("chat").appendChild(d);$("chat").scrollTop=1e9;return d;}
+function resetChat(){turns=[];$("chat").innerHTML="";bubble("ai",state?"Ich kenne jetzt den Link „"+state.host+"“ und das Prüfergebnis. Was möchtest du wissen?":"Prüfe zuerst einen Link im ersten Tab oder stelle mir allgemeine Fragen zu sicheren Downloads.");}
+resetChat();
+let cc=null;
+async function ask(){
+ const v=$("q").value.trim();if(!v||busy||!sample)return;
+ busy=true;$("q").value="";bubble("me",v);turns.push({role:"user",content:v});
+ const b=bubble("ai","Denke nach…");$("cstop").classList.remove("hide");cc=new AbortController();
+ const msgs=[{role:"user",content:RULES+"\n\nAktueller Prüfkontext:\n"+ctx()+"\n\nAb jetzt folgt die Unterhaltung."},...turns.slice(-16)];
+ try{
+  const r=await sample(msgs,{cache:false,signal:cc.signal,onText:({text})=>{b.textContent=text;$("chat").scrollTop=1e9;}});
+  turns.push({role:"assistant",content:r.text});
+ }catch(e){
+  if(e.text){b.textContent=e.text;turns.push({role:"assistant",content:e.text});}
+  else{b.textContent=e.code==="cancelled"?"(abgebrochen)":errTx(e);turns.pop();}
+ }
+ busy=false;$("cstop").classList.add("hide");
+}
+$("send").onclick=ask;$("q").addEventListener("keydown",e=>{if(e.key==="Enter")ask();});
+$("cstop").onclick=()=>cc&&cc.abort();
+</script>
+</body>
+</html>
